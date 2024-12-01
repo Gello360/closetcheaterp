@@ -4,7 +4,7 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Aim Assist Menu
 local AimAssistMenu = Instance.new("Frame")
-AimAssistMenu.Size = UDim2.new(0, 300, 0, 250)
+AimAssistMenu.Size = UDim2.new(0, 300, 0, 300)
 AimAssistMenu.Position = UDim2.new(0.5, -150, 0.3, 0)
 AimAssistMenu.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 AimAssistMenu.BackgroundTransparency = 0.5
@@ -38,10 +38,27 @@ SmoothnessSlider.Value = 0.5
 SmoothnessSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 SmoothnessSlider.Parent = AimAssistMenu
 
+-- Keybind Label and TextBox
+local KeybindLabel = Instance.new("TextLabel")
+KeybindLabel.Size = UDim2.new(0, 250, 0, 30)
+KeybindLabel.Position = UDim2.new(0.5, -125, 0.4, 0)
+KeybindLabel.Text = "Keybind: R"
+KeybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeybindLabel.BackgroundTransparency = 1
+KeybindLabel.Parent = AimAssistMenu
+
+local KeybindTextBox = Instance.new("TextBox")
+KeybindTextBox.Size = UDim2.new(0, 250, 0, 30)
+KeybindTextBox.Position = UDim2.new(0.5, -125, 0.5, 0)
+KeybindTextBox.Text = "R"
+KeybindTextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+KeybindTextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+KeybindTextBox.Parent = AimAssistMenu
+
 -- Boutons
 local AimAssistToggleButton = Instance.new("TextButton")
 AimAssistToggleButton.Size = UDim2.new(0, 250, 0, 30)
-AimAssistToggleButton.Position = UDim2.new(0.5, -125, 0.5, 0)
+AimAssistToggleButton.Position = UDim2.new(0.5, -125, 0.6, 0)
 AimAssistToggleButton.Text = "Toggle Aim Assist"
 AimAssistToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AimAssistToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -57,7 +74,7 @@ CloseButton.Parent = AimAssistMenu
 
 -- Variables pour Aim Assist
 local AimAssistEnabled = false
-local toggleKey = Enum.KeyCode.R
+local toggleKey = Enum.KeyCode.R  -- Default key is R
 local AimAssistSmoothness = 0.5
 
 -- Fonction pour activer/désactiver Aim Assist
@@ -81,6 +98,20 @@ end
 SmoothnessSlider.Changed:Connect(function()
     AimAssistSmoothness = SmoothnessSlider.Value
     SmoothnessLabel.Text = "Smoothness: " .. tostring(math.round(AimAssistSmoothness, 2))
+end)
+
+-- Fonction pour mettre à jour la touche du keybind
+KeybindTextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local newKey = KeybindTextBox.Text:upper()
+        local keyEnum = Enum.KeyCode[newKey]
+        if keyEnum then
+            toggleKey = keyEnum
+            KeybindLabel.Text = "Keybind: " .. newKey
+        else
+            KeybindLabel.Text = "Invalid Key"
+        end
+    end
 end)
 
 -- Connecter les boutons
