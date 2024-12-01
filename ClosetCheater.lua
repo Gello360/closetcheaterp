@@ -4,7 +4,7 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Aim Assist Menu
 local AimAssistMenu = Instance.new("Frame")
-AimAssistMenu.Size = UDim2.new(0, 300, 0, 150)
+AimAssistMenu.Size = UDim2.new(0, 300, 0, 350)  -- Increased size for the slider
 AimAssistMenu.Position = UDim2.new(0.5, -150, 0.3, 0)
 AimAssistMenu.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 AimAssistMenu.BackgroundTransparency = 0.5
@@ -13,98 +13,122 @@ AimAssistMenu.Parent = ScreenGui
 
 -- Label for the Aim Assist Status
 local AimAssistLabel = Instance.new("TextLabel")
-AimAssistLabel.Size = UDim2.new(0, 200, 0, 50)
-AimAssistLabel.Position = UDim2.new(0.5, -100, 0.1, 0)
+AimAssistLabel.Size = UDim2.new(0, 250, 0, 30)
+AimAssistLabel.Position = UDim2.new(0.5, -125, 0.1, 0)
 AimAssistLabel.Text = "Aim Assist: Disabled"
 AimAssistLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 AimAssistLabel.BackgroundTransparency = 1
 AimAssistLabel.Parent = AimAssistMenu
 
--- Button to toggle Aim Assist
+-- Boutons
 local AimAssistToggleButton = Instance.new("TextButton")
-AimAssistToggleButton.Size = UDim2.new(0, 200, 0, 50)
-AimAssistToggleButton.Position = UDim2.new(0.5, -100, 0.2, 0)
+AimAssistToggleButton.Size = UDim2.new(0, 250, 0, 30)
+AimAssistToggleButton.Position = UDim2.new(0.5, -125, 0.3, 0)
 AimAssistToggleButton.Text = "Toggle Aim Assist"
 AimAssistToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AimAssistToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 AimAssistToggleButton.Parent = AimAssistMenu
 
--- Button to close the menu
 local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 200, 0, 50)
-CloseButton.Position = UDim2.new(0.5, -100, 0.7, 0)
+CloseButton.Size = UDim2.new(0, 250, 0, 30)
+CloseButton.Position = UDim2.new(0.5, -125, 0.85, 0)
 CloseButton.Text = "Close Menu"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 CloseButton.Parent = AimAssistMenu
 
--- Button to change the key for Aim Assist toggle
-local ChangeKeyButton = Instance.new("TextButton")
-ChangeKeyButton.Size = UDim2.new(0, 200, 0, 50)
-ChangeKeyButton.Position = UDim2.new(0.5, -100, 0.4, 0)
-ChangeKeyButton.Text = "Change Toggle Key"
-ChangeKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ChangeKeyButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ChangeKeyButton.Parent = AimAssistMenu
+-- Smoothness Slider
+local SmoothnessSlider = Instance.new("TextButton")
+SmoothnessSlider.Size = UDim2.new(0, 250, 0, 30)
+SmoothnessSlider.Position = UDim2.new(0.5, -125, 0.55, 0)
+SmoothnessSlider.Text = "Smoothness: 0.5"
+SmoothnessSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+SmoothnessSlider.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+SmoothnessSlider.Parent = AimAssistMenu
 
--- Variables for Aim Assist
+-- Variables pour Aim Assist
 local AimAssistEnabled = false
-local AimAssistSpeed = 2
-local AimAssistSmoothness = 50
-
--- Default Key for toggling Aim Assist
 local toggleKey = Enum.KeyCode.R
+local AimAssistSmoothness = 0.5
+local MaxDistance = 20  -- Maximum distance to target players (in studs)
 
--- Function to toggle the Aim Assist
+-- Fonction pour activer/désactiver Aim Assist
 local function toggleAimAssist()
     AimAssistEnabled = not AimAssistEnabled
     if AimAssistEnabled then
         AimAssistLabel.Text = "Aim Assist: Enabled"
         AimAssistLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        -- Start the logic for Aim Assist (Add your Aim Assist functionality here)
     else
         AimAssistLabel.Text = "Aim Assist: Disabled"
         AimAssistLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-        -- Stop the logic for Aim Assist (Add your logic to disable here)
     end
 end
 
--- Function to open or close the Aim Assist Menu
+-- Fonction pour ajuster la smoothness
+local function adjustSmoothness()
+    AimAssistSmoothness = AimAssistSmoothness + 0.1
+    if AimAssistSmoothness > 1 then
+        AimAssistSmoothness = 0.1
+    end
+    SmoothnessSlider.Text = "Smoothness: " .. string.format("%.1f", AimAssistSmoothness)
+end
+
+-- Fonction pour ouvrir/fermer le menu
 local function toggleMenu()
     AimAssistMenu.Visible = not AimAssistMenu.Visible
 end
 
--- Function to change the toggle key
-local function changeToggleKey(newKey)
-    toggleKey = newKey
-end
-
--- Connect the Toggle Aim Assist button to the function
+-- Connecter les boutons
 AimAssistToggleButton.MouseButton1Click:Connect(toggleAimAssist)
-
--- Connect the Close Button to hide the menu
 CloseButton.MouseButton1Click:Connect(toggleMenu)
+SmoothnessSlider.MouseButton1Click:Connect(adjustSmoothness)
 
--- Connect the Change Key button to allow the player to choose a new key
-ChangeKeyButton.MouseButton1Click:Connect(function()
-    -- Allow the player to choose a new key using InputBegan event
-    game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        -- Update the toggleKey when a new key is pressed
-        changeToggleKey(input.KeyCode)
-        print("New toggle key set to: " .. input.KeyCode.Name)
-    end)
+-- Logique d'Aim Assist
+game:GetService("RunService").RenderStepped:Connect(function()
+    if AimAssistEnabled then
+        local character = game.Players.LocalPlayer.Character
+        local camera = workspace.CurrentCamera
+
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local closestTarget = nil
+            local closestTargetPart = nil
+            local closestDistance = math.huge
+
+            -- Vérifier si une cible est dans la vue de la caméra
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local targetPart = player.Character.HumanoidRootPart
+                    local screenPoint = camera:WorldToViewportPoint(targetPart.Position)
+
+                    -- Vérifier si la cible est dans l'écran de la caméra
+                    if screenPoint.Z > 0 then
+                        local distance = (camera.CFrame.Position - targetPart.Position).Magnitude
+                        
+                        -- Vérifier si la cible est à une distance acceptable
+                        if distance < closestDistance and distance <= MaxDistance then
+                            closestDistance = distance
+                            closestTarget = player
+                            closestTargetPart = targetPart
+                        end
+                    end
+                end
+            end
+
+            -- Appliquer l'Aim Assist sur la cible sélectionnée
+            if closestTargetPart then
+                local direction = (closestTargetPart.Position - camera.CFrame.Position).Unit
+                camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, camera.CFrame.Position + direction), AimAssistSmoothness)
+            end
+        end
+    end
 end)
 
--- Function to open or close the menu with RightShift key
+-- Gérer les entrées clavier
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    -- Open/Close the menu when RightShift is pressed
     if input.KeyCode == Enum.KeyCode.RightShift then
         toggleMenu()
-    end
-    -- Toggle Aim Assist with the configured toggle key (Default: R)
-    if input.KeyCode == toggleKey then
+    elseif input.KeyCode == toggleKey then
         toggleAimAssist()
     end
 end)
