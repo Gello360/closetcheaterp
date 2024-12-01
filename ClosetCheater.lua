@@ -4,7 +4,7 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Aim Assist Menu
 local AimAssistMenu = Instance.new("Frame")
-AimAssistMenu.Size = UDim2.new(0, 300, 0, 350)  -- Increased size for the slider
+AimAssistMenu.Size = UDim2.new(0, 300, 0, 250)
 AimAssistMenu.Position = UDim2.new(0.5, -150, 0.3, 0)
 AimAssistMenu.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 AimAssistMenu.BackgroundTransparency = 0.5
@@ -20,10 +20,28 @@ AimAssistLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 AimAssistLabel.BackgroundTransparency = 1
 AimAssistLabel.Parent = AimAssistMenu
 
+-- Smoothness Label and Slider
+local SmoothnessLabel = Instance.new("TextLabel")
+SmoothnessLabel.Size = UDim2.new(0, 250, 0, 30)
+SmoothnessLabel.Position = UDim2.new(0.5, -125, 0.2, 0)
+SmoothnessLabel.Text = "Smoothness: 0.5"
+SmoothnessLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SmoothnessLabel.BackgroundTransparency = 1
+SmoothnessLabel.Parent = AimAssistMenu
+
+local SmoothnessSlider = Instance.new("Slider")
+SmoothnessSlider.Size = UDim2.new(0, 250, 0, 30)
+SmoothnessSlider.Position = UDim2.new(0.5, -125, 0.3, 0)
+SmoothnessSlider.Min = 0
+SmoothnessSlider.Max = 1
+SmoothnessSlider.Value = 0.5
+SmoothnessSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SmoothnessSlider.Parent = AimAssistMenu
+
 -- Boutons
 local AimAssistToggleButton = Instance.new("TextButton")
 AimAssistToggleButton.Size = UDim2.new(0, 250, 0, 30)
-AimAssistToggleButton.Position = UDim2.new(0.5, -125, 0.3, 0)
+AimAssistToggleButton.Position = UDim2.new(0.5, -125, 0.5, 0)
 AimAssistToggleButton.Text = "Toggle Aim Assist"
 AimAssistToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AimAssistToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -37,20 +55,10 @@ CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 CloseButton.Parent = AimAssistMenu
 
--- Smoothness Slider
-local SmoothnessSlider = Instance.new("TextButton")
-SmoothnessSlider.Size = UDim2.new(0, 250, 0, 30)
-SmoothnessSlider.Position = UDim2.new(0.5, -125, 0.55, 0)
-SmoothnessSlider.Text = "Smoothness: 0.5"
-SmoothnessSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
-SmoothnessSlider.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-SmoothnessSlider.Parent = AimAssistMenu
-
 -- Variables pour Aim Assist
 local AimAssistEnabled = false
 local toggleKey = Enum.KeyCode.R
 local AimAssistSmoothness = 0.5
-local MaxDistance = 20  -- Maximum distance to target players (in studs)
 
 -- Fonction pour activer/désactiver Aim Assist
 local function toggleAimAssist()
@@ -64,24 +72,20 @@ local function toggleAimAssist()
     end
 end
 
--- Fonction pour ajuster la smoothness
-local function adjustSmoothness()
-    AimAssistSmoothness = AimAssistSmoothness + 0.1
-    if AimAssistSmoothness > 1 then
-        AimAssistSmoothness = 0.1
-    end
-    SmoothnessSlider.Text = "Smoothness: " .. string.format("%.1f", AimAssistSmoothness)
-end
-
 -- Fonction pour ouvrir/fermer le menu
 local function toggleMenu()
     AimAssistMenu.Visible = not AimAssistMenu.Visible
 end
 
+-- Logique pour la mise à jour de la smoothness
+SmoothnessSlider.Changed:Connect(function()
+    AimAssistSmoothness = SmoothnessSlider.Value
+    SmoothnessLabel.Text = "Smoothness: " .. tostring(math.round(AimAssistSmoothness, 2))
+end)
+
 -- Connecter les boutons
 AimAssistToggleButton.MouseButton1Click:Connect(toggleAimAssist)
 CloseButton.MouseButton1Click:Connect(toggleMenu)
-SmoothnessSlider.MouseButton1Click:Connect(adjustSmoothness)
 
 -- Logique d'Aim Assist
 game:GetService("RunService").RenderStepped:Connect(function()
@@ -97,15 +101,19 @@ game:GetService("RunService").RenderStepped:Connect(function()
             -- Vérifier si une cible est dans la vue de la caméra
             for _, player in pairs(game.Players:GetPlayers()) do
                 if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    -- Ne pas viser les joueurs de la même équipe
+                    if player.Team == game.Players.LocalPlayer.Team then
+                        continue  -- Ignore this player if they are on the same team
+                    end
+                    
                     local targetPart = player.Character.HumanoidRootPart
                     local screenPoint = camera:WorldToViewportPoint(targetPart.Position)
 
                     -- Vérifier si la cible est dans l'écran de la caméra
                     if screenPoint.Z > 0 then
                         local distance = (camera.CFrame.Position - targetPart.Position).Magnitude
-                        
-                        -- Vérifier si la cible est à une distance acceptable
-                        if distance < closestDistance and distance <= MaxDistance then
+                        -- Cibler la personne la plus proche dans l'écran
+                        if distance < closestDistance then
                             closestDistance = distance
                             closestTarget = player
                             closestTargetPart = targetPart
